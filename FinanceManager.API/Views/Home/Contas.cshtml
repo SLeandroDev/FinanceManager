@@ -1,0 +1,340 @@
+﻿@{
+    var usuarioId = ViewData["UsuarioId"];
+}
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<div class="card-body align-items-center py-3 px-4 bg-light rounded-lg shadow border border-dark rounded">
+    <h1>Gerenciar Contas</h1>
+
+    <div class="d-flex justify-content-between align-items-center py-3 px-4 bg-light rounded-lg shadow-sm border border-dark rounded">
+        <!-- Seção de Layout -->
+        @* <div v class="d-flex align-items-center">
+
+            <div id="layout" class="btn-group" role="group">
+                <button id="btnTabela" class="btn btn-outline-primary text-d">Tabela</button>
+                <button id="btnCards" class="btn btn-outline-primary">Cards</button>
+            </div>
+        </div> *@
+
+        <!-- Botão Adicionar Transação -->
+        <div class="d-flex align-items-center">
+            <button class="btn btn-outline-success px-4 py-2 font-weight-bold" data-bs-toggle="modal" data-bs-target="#adicionarContaModal">
+                <i class="fas fa-plus-circle mr-2"></i> Adicionar Conta
+            </button>
+        </div>
+    </div>
+
+    @* <div id="tabelaContas" class="mt-4">
+        <table class="table table-striped table-bordered table-hover shadow-sm rounded">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Banco</th>
+                    <th>Saldo</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody id="contasTabela">
+                <!-- As contas serão preenchidas via JavaScript -->
+            </tbody>
+        </table>
+    </div> *@
+
+    <!-- Grid de Cards -->
+    <div id="cardsContas" class="mt-4" >
+        <div class="row" id="cardsBodyContas">
+            <!-- Cards das transações -->
+        </div>
+    </div>
+</div>
+<!-- Modal para Adicionar Conta -->
+<div class="modal fade" id="adicionarContaModal" tabindex="-1" aria-labelledby="adicionarContaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="adicionarContaModalLabel">Adicionar Conta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="adicionarContaForm">
+                    <div class="mb-3">
+                        <label for="banco" class="form-label">Banco</label>
+                        <input type="text" class="form-control" id="banco" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="saldo" class="form-label">Saldo</label>
+                        <input type="number" class="form-control" id="saldo" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="hidden" id="usuarioId" value="@usuarioId" />
+                    </div>
+                    <button type="submit" class="btn btn-success">Adicionar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas dinâmicos -->
+<div id="successAlert" class="alert alert-success d-none position-fixed top-0 start-50 translate-middle-x mt-3" role="alert" style="z-index: 9999"></div>
+<div id="errorAlert" class="alert alert-danger d-none position-fixed top-0 start-50 translate-middle-x mt-3" role="alert" style="z-index: 9999"></div>
+
+<!-- Modal para Editar Conta -->
+<div class="modal fade" id="editarContaModal" tabindex="-1" aria-labelledby="editarContaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarContaLabel">Editar Conta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editarContaForm">
+                    <input type="hidden" id="editContaId">
+                    <div class="mb-3">
+                        <label for="editBanco" class="form-label">Banco</label>
+                        <input type="text" class="form-control" id="editBanco" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSaldo" class="form-label">Saldo</label>
+                        <input type="number" class="form-control" id="editSaldo" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="salvarEdicaoConta()">Salvar Alterações</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        function carregarContas() {
+            $.ajax({
+                url: '/api/Conta',  // Ajuste a URL para a sua API de contas
+                type: 'GET',
+                success: function (contas) {
+                    preencherCardsContas(contas);
+                }
+            });
+        }
+
+      
+
+        function formatarNomeBanco(nome) {
+            return nome
+                .normalize("NFD") // Normaliza os caracteres acentuados
+                .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+                .replace(/\s+/g, ""); // Remove espaços
+        }
+
+        // Função para preencher os cards com as contas
+        function preencherCardsContas(contas) {
+            var cardsBody = $("#cardsBodyContas");
+            cardsBody.empty(); // Limpar os cards antes de adicionar novos
+
+            contas.forEach(function (conta) {
+                var card = $("<div>").addClass("col-md-3 mb-4").attr("data-id", conta.id);
+                var cardContent = $("<div>").addClass("card").append("<div class='card-body'>");
+
+                // Adicionando logo do banco
+                var urlLogo = "https://logo.clearbit.com/" + formatarNomeBanco(conta.banco) + ".com"
+                var logoImg = $("<img>").addClass("card-img-top").attr("src", urlLogo || "URL_PADRAO_LOGO_AQUI").attr("alt", "Logo do banco");
+                cardContent.prepend(logoImg);
+
+                // Informações sobre a conta
+                cardContent.append("<h5 class='card-title'>" + conta.banco + "</h5>");
+                cardContent.append("<p class='card-text'>Saldo: " + conta.saldo + "</p>");
+
+                // Botões de Editar e Excluir dentro da mesma coluna de ações
+                var buttonContainer = $("<div>").addClass("d-flex justify-content-between mt-3");
+                buttonContainer.append("<button class='btn btn-info editar' data-id='" + conta.id + "' data-banco='" + conta.banco + "' data-saldo='" + conta.saldo + "'> <i class='fas fa-edit'></i>Editar</button>");
+                buttonContainer.append("<button class='btn btn-danger excluir' data-id='" + conta.id + "' data-banco='" + conta.banco + "' data-saldo='" + conta.saldo + "'> <i class='fas fa-trash-alt'></i>Excluir</button>");
+
+                cardContent.append(buttonContainer);
+                card.append(cardContent);
+                cardsBody.append(card);
+            });
+
+            // Adicionando evento de excluir
+            $(".excluir").click(function () {
+                var contaId = $(this).data("id");
+                var banco = $(this).data("banco");
+                excluirConta(contaId, banco);
+            });
+
+            // Adicionando evento de editar
+            $(".editar").click(function () {
+                var contaId = $(this).data("id");
+                var banco = $(this).data("banco");
+                var saldo = $(this).data("saldo");
+                abrirModalEdicao(contaId, banco, saldo);
+            });
+        }
+
+       
+
+        function adicionarConta() {
+            var novaConta = {
+                banco: $('#banco').val(),
+                saldo: $('#saldo').val(),
+                usuarioId: $('#usuarioId').val()  // Usando o usuárioId da sessão
+            };
+
+            // Envia a nova conta via API
+            $.ajax({
+                url: '/api/Conta', // O endpoint para adicionar uma nova conta
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(novaConta),
+                success: function (createdConta) {
+                    // Fecha o modal
+                    $('#adicionarContaModal').modal('hide');
+
+                    // Limpar o formulário
+                    $('#adicionarContaForm')[0].reset();
+
+                    carregarContas()
+
+                    showAlert("success", "Conta adicionada com sucesso!");
+                    
+                },
+                error: function () {
+                    showAlert("error", "Erro ao adicionar conta!");
+                }
+            });
+        }
+
+        $('#adicionarContaForm').submit(function (event) {
+            event.preventDefault(); // Impede o envio padrão do formulário
+
+            adicionarConta(); // Chama a função para adicionar a conta
+        });
+
+        // Carregar as contas assim que a página for carregada
+        carregarContas();
+    });
+
+    function excluirConta(id, banco) {
+        if (!confirm(`Tem certeza que deseja excluir a conta do banco ${banco}?`)) {
+            return;
+        }
+
+        $.ajax({
+            url: `/api/Conta/${id}`, // Passa o banco na query string
+            type: 'DELETE',
+            success: function () {
+                carregarContas()
+                carregarContas()
+                showAlert("success", "Conta excluida com sucesso!");
+            },
+            error: function () {
+                showAlert("Erro ao excluir a conta.");
+            }
+        });
+    }
+
+    function abrirModalEdicao(id, banco, saldo) {
+        $('#editContaId').val(id); // Define o ID no input oculto
+        $('#editBanco').val(banco);
+        $('#editSaldo').val(saldo);
+
+        $('#editarContaModal').modal('show'); // Abre o modal
+    }
+
+    function salvarEdicaoConta() {
+        var id = $('#editContaId').val();
+
+        var novosDados = {
+            banco: $('#editBanco').val(),
+            saldo: parseFloat($('#editSaldo').val()), // Converte saldo para número
+            usuarioId: $('#usuarioId').val() // Pegando o ID do usuário
+        };
+
+        if (!id) {
+            alert('Erro: ID da conta não encontrado.');
+            return;
+        }
+
+        if (!confirm(`Tem certeza que deseja editar os dados da conta?`)) {
+            return;
+        }
+
+        $.ajax({
+            url: `/api/Conta/${id}`,
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(novosDados),
+            success: function () {
+                showAlert("success", "Conta editada com sucesso!");
+                $('#editarContaModal').modal('hide'); // Fecha o modal
+                location.reload();
+            },
+            error: function () {
+                alert('Erro ao editar a conta.');
+            }
+        });
+    }
+
+
+    // Alternar entre tabela e cards
+    $("#btnTabela").click(function () {
+        $("#tabelaContas").show();
+        $("#cardsContas").hide();
+    });
+
+    $("#btnCards").click(function () {
+        $("#tabelaContas").hide();
+        $("#cardsContas").show();
+    });
+
+    // Função para exibir alertas que somem após 5 segundos
+    function showAlert(type, message) {
+        let alertBox;
+
+        // Se for sucesso, usa a div de sucesso
+        if (type === "success") {
+            alertBox = document.getElementById("successAlert");
+        }
+        // Se for erro, usa a div de erro
+        else if (type === "error") {
+            alertBox = document.getElementById("errorAlert");
+        }
+
+        // Verifica se a div de alerta foi encontrada
+        if (!alertBox) {
+            console.error("Elemento de alerta não encontrado!");
+            return;
+        }
+
+        // Define a mensagem do alerta
+        alertBox.innerText = message;
+
+        // Torna o alerta visível
+        alertBox.classList.remove("d-none");
+
+        // Remove o alerta após 5 segundos
+        setTimeout(() => {
+            alertBox.classList.add("d-none");
+        }, 5000); // 5 segundos para desaparecer
+    }
+
+</script>
+
+<style>
+    /* Cards - Background color */
+    .card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+        .card:hover {
+            background-color: #e9ecef;
+        }
+
+</style>

@@ -1,0 +1,17 @@
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\bin\Debug\net8.0\FinanceManager.Infrastructure.deps.json
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\bin\Debug\net8.0\FinanceManager.Infrastructure.runtimeconfig.json
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\bin\Debug\net8.0\FinanceManager.Infrastructure.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\bin\Debug\net8.0\FinanceManager.Infrastructure.pdb
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\bin\Debug\net8.0\FinanceManager.Domain.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\bin\Debug\net8.0\FinanceManager.Domain.pdb
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\obj\Debug\net8.0\FinanceManager.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\obj\Debug\net8.0\FinanceManager.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\obj\Debug\net8.0\FinanceManager.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\obj\Debug\net8.0\FinanceManager.Infrastructure.AssemblyInfo.cs
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\obj\Debug\net8.0\FinanceManager.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\obj\Debug\net8.0\FinanceM.5E5C836B.Up2Date
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\obj\Debug\net8.0\FinanceManager.Infrastructure.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\obj\Debug\net8.0\refint\FinanceManager.Infrastructure.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\obj\Debug\net8.0\FinanceManager.Infrastructure.pdb
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\obj\Debug\net8.0\FinanceManager.Infrastructure.genruntimeconfig.cache
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Infrastructure\obj\Debug\net8.0\ref\FinanceManager.Infrastructure.dll

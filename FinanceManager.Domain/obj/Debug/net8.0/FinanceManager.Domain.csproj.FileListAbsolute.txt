@@ -1,0 +1,12 @@
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\bin\Debug\net8.0\FinanceManager.Domain.deps.json
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\bin\Debug\net8.0\FinanceManager.Domain.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\bin\Debug\net8.0\FinanceManager.Domain.pdb
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\obj\Debug\net8.0\FinanceManager.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\obj\Debug\net8.0\FinanceManager.Domain.AssemblyInfoInputs.cache
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\obj\Debug\net8.0\FinanceManager.Domain.AssemblyInfo.cs
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\obj\Debug\net8.0\FinanceManager.Domain.csproj.CoreCompileInputs.cache
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\obj\Debug\net8.0\FinanceManager.Domain.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\obj\Debug\net8.0\refint\FinanceManager.Domain.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\obj\Debug\net8.0\FinanceManager.Domain.pdb
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\obj\Debug\net8.0\ref\FinanceManager.Domain.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Domain\obj\Debug\net8.0\FinanceManager.Domain.csproj.AssemblyReference.cache

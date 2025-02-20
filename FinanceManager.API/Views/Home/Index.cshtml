@@ -1,0 +1,608 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financeiro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+
+<h2 class="mb-4">Bem-vindo, @ViewData["NomeDoUsuario"]!</h2>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div id="painelReceitas"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="painelDespesas"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="painelSaldo"></div>
+        </div>
+    </div>
+
+    <div class="card-body mt-4 align-items-center py-3 px-4 bg-light rounded-lg shadow border border-dark rounded">
+        <div class="row">
+            <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                <canvas id="graficoReceitas"></canvas>
+            </div>
+            <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                <canvas id="graficoDespesas"></canvas>
+            </div>
+            <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                <canvas id="graficoSaldo"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body mt-4 align-items-center py-3 px-4 bg-light rounded-lg shadow border border-dark rounded">
+        <div class="row">
+            <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+                <canvas id="graficoLinha"></canvas>
+            </div>
+            <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+                <canvas id="graficoReceitaDespesaBanco"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body mt-4 align-items-center py-3 px-4 bg-light rounded-lg shadow border border-dark rounded">
+        <div class="row">
+            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                <canvas id="graficoCombinado"></canvas>
+            </div>
+        </div>
+    </div>
+
+    
+    
+
+    
+
+    
+    
+</div>
+
+<script>
+    $(document).ready(function () {
+        carregarTransacoes();
+        carregarDados();
+    });
+
+    function carregarTransacoes() {
+        $.ajax({
+            url: '/api/Transacao/completas', // Ajuste a URL conforme necessário
+            type: 'GET',
+            success: function (transacoes) {
+                processarTransacoes(transacoes);
+            },
+            error: function () {
+                console.error("Erro ao carregar transações");
+            }
+        });
+    }
+
+    function carregarDados() {
+        let transacoes = [];
+        let bancos = {};
+
+        $.when(
+            $.ajax({
+                url: '/api/Transacao/completas',
+                type: 'GET',
+                success: function (dados) { transacoes = dados; }
+            }),
+            $.ajax({
+                url: '/api/Conta',
+                type: 'GET',
+                success: function (dados) {
+                    // Aqui, vamos armazenar as informações de nome e saldo do banco
+                    dados.forEach(banco => {
+                        bancos[banco.id] = {
+                            nome: banco.banco,     // Nome do banco
+                            saldo: banco.saldo     // Saldo do banco
+                        };
+                    });
+                }
+            })
+                
+        ).then(function () {
+            processarGraficoTotal(transacoes, bancos);
+            processarTransacoesGrafico(transacoes, bancos);
+            processarGraficoLinha(transacoes, bancos);
+            processarGraficoGeral(transacoes, bancos);
+        }).fail(function () {
+            console.error("Erro ao carregar os dados.");
+        });
+    }
+
+    // Função para processar as transações
+    function processarTransacoes(transacoes) {
+        let totalReceitas = 0;
+        let totalDespesas = 0;
+
+        transacoes.forEach(function (transacao) {
+            if (transacao.tipoTransacao == 1) {
+                totalReceitas += transacao.valor;
+            } else {
+                totalDespesas += transacao.valor;
+            }
+        });
+
+        let saldoAtual = totalReceitas - totalDespesas;
+
+        // Atualiza os painéis de forma dinâmica
+        atualizarPainel("#painelReceitas", "Receitas", totalReceitas, "fas fa-arrow-up", "info");
+        atualizarPainel("#painelDespesas", "Despesas", totalDespesas, "fas fa-arrow-down", "warning");
+        atualizarPainel("#painelSaldo", "Saldo Atual", saldoAtual, "fas fa-wallet", saldoAtual >= 0 ? "success" : "danger");
+    }
+
+    // Função para atualizar os painéis na tela
+    function atualizarPainel(elemento, titulo, valor, icone, cor) {
+        $(elemento).html(`
+            <div class="card border-${cor} shadow-sm">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-container text-${cor} me-3">
+                        <i class="${icone} fa-2x"></i>
+                    </div>
+                    <div class="text-container">
+                            <h6 class="card-subtitle mb-2 text-${cor}">${titulo}</h6>
+                        <h4 class="card-title fw-bold">R$ ${valor.toFixed(2)}</h4>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+
+    function processarTransacoesGrafico(transacoes, bancos) {
+        var dadosPorBanco = {};
+
+        transacoes.forEach(transacao => {
+            var contaId = transacao.contaId;
+            var bancoInfo = bancos[contaId] || { nome: "Desconhecido", saldo: 0 }; // Obtém as informações do banco (nome e saldo)
+            var valor = transacao.valor;
+            var tipo = transacao.tipoTransacao; // "Receita" ou "Despesa"
+
+            // Se o banco ainda não foi inicializado no objeto dadosPorBanco, inicializamos
+            if (!dadosPorBanco[bancoInfo.nome]) {
+                dadosPorBanco[bancoInfo.nome] = { receita: 0, despesa: 0, saldo: bancoInfo.saldo }; // Inicializa com saldo do banco
+            }
+
+            // Atualizamos os valores de receita ou despesa, dependendo do tipo
+            if (tipo === 1) {
+                dadosPorBanco[bancoInfo.nome].receita += valor; // Soma a receita
+            } else if (tipo === 2) {
+                dadosPorBanco[bancoInfo.nome].despesa += valor; // Soma a despesa
+            }
+        });
+
+        // Agora, obtemos os nomes dos bancos, receitas, despesas e saldos
+        var nomesBancos = Object.keys(dadosPorBanco);
+        var receitas = nomesBancos.map(banco => dadosPorBanco[banco].receita);
+        var despesas = nomesBancos.map(banco => dadosPorBanco[banco].despesa);
+
+        // Chama a função que renderiza o gráfico com esses dados
+        renderizarGrafico(nomesBancos, receitas, despesas);
+    }
+
+
+    function renderizarGrafico(bancos, receitas, despesas) {
+        var ctx = document.getElementById("graficoReceitaDespesaBanco").getContext("2d");
+        new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: bancos,
+                datasets: [
+                    {
+                        label: "Receitas",
+                        data: receitas,
+                        backgroundColor: "rgba(75, 192, 192, 0.5)",
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        borderWidth: 1
+                    },
+                    {
+                        label: "Despesas",
+                        data: despesas,
+                        backgroundColor: "rgba(255, 99, 132, 0.5)",
+                        borderColor: "rgba(255, 99, 132, 1)",
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    function processarGraficoLinha(transacoes, bancos) {
+        
+        var receitasPorData = {};
+        var despesasPorData = {};
+        var descricoesPorData = {};
+        var todasAsDatas = new Set(); // Para coletar todas as datas únicas
+
+        // Organiza as transações por tipo e data
+        transacoes.forEach(transacao => {
+            var tipo = transacao.tipoTransacao; // 1 = "Receita", 2 = "Despesa"
+            var valor = transacao.valor;
+            var data = new Date(transacao.dataTransacao); // Assumindo que a data da transação é armazenada como string ISO 8601
+
+            // Formata a data para o formato 'YYYY-MM-DD'
+            var dataFormatada = data.toISOString().split('T')[0];
+
+            // Adiciona a data ao conjunto de todas as datas
+            todasAsDatas.add(dataFormatada);
+
+            // Inicializa os dados por data para receitas e despesas
+            if (tipo === 1) { // Receita
+                if (!receitasPorData[dataFormatada]) {
+                    receitasPorData[dataFormatada] = 0;
+                    descricoesPorData[dataFormatada] = []; // Inicializa o array de descrições
+                }
+                receitasPorData[dataFormatada] += valor;
+                descricoesPorData[dataFormatada].push(transacao.descricao); // Adiciona a descrição
+            } else if (tipo === 2) { // Despesa
+                if (!despesasPorData[dataFormatada]) {
+                    despesasPorData[dataFormatada] = 0;
+                    descricoesPorData[dataFormatada] = []; // Inicializa o array de descrições
+                }
+                despesasPorData[dataFormatada] += valor;
+                descricoesPorData[dataFormatada].push(transacao.descricao); // Adiciona a descrição
+            }
+        });
+
+        // Converte o conjunto de datas para um array ordenado
+        var datas = Array.from(todasAsDatas).sort();
+
+        // Prepara os dados para o gráfico de linha
+        var receitas = datas.map(data => receitasPorData[data] || 0);
+        var despesas = datas.map(data => despesasPorData[data] || 0);
+
+        // Função para renderizar o gráfico com tooltips
+        function renderizarGraficoLinha(datas, receitas, despesas, categorias) {
+            var chart = new Chart(document.getElementById("graficoLinha"), {
+                type: 'line',
+                data: {
+                    labels: datas,
+                    datasets: [
+                        {
+                            label: categorias[0],
+                            data: receitas,
+                            borderColor: 'rgba(153, 102, 255, 0.6)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.6))',
+                            fill: false,
+                            pointBackgroundColor: 'rgba(153, 102, 255, 0.6)',
+                            pointRadius: 5
+                        },
+                        {
+                            label: categorias[1],
+                            data: despesas,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: false,
+                            pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                            pointRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                // Título do tooltip (data)
+                                title: function (tooltipItem) {
+                                    return tooltipItem[0].label;
+                                },
+                                // Conteúdo do tooltip
+                                label: function (tooltipItem) {
+                                    // Recupera o índice da data selecionada
+                                    var dataSelecionada = tooltipItem.label;
+                                    // Verifica se é uma receita ou despesa
+                                    var tipo = tooltipItem.datasetIndex === 0 ? 'Receita' : 'Despesa';
+                                    var valor = tooltipItem.raw;
+                                    // Coleta as descrições para aquela data
+                                    var descricoes = descricoesPorData[dataSelecionada] || [];
+                                    return `${tipo}: ${valor} - Descrições: ${descricoes.join(", ")}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chama a função para renderizar o gráfico com os dados
+        renderizarGraficoLinha(datas, receitas, despesas, ["Receitas", "Despesas"]);
+
+    }
+
+    function renderizarGraficoLinha(datas, receitas, despesas, categorias) {
+        var ctx = document.getElementById('graficoLinha').getContext('2d');
+
+        var grafico = new Chart(ctx, {
+            type: 'line', // Tipo de gráfico (linha)
+            data: {
+                labels: datas, // Eixo X (datas)
+                datasets: categorias.map((categoria, index) => ({
+                    label: `Receita - ${categoria}`,
+                    data: receitas[index], // Dados de receita
+                    fill: false,
+                    borderColor: '#28a745', // Cor para a linha de receita
+                    tension: 0.1
+                })).concat(categorias.map((categoria, index) => ({
+                    label: `Despesa - ${categoria}`,
+                    data: despesas[index], // Dados de despesa
+                    fill: false,
+                    borderColor: '#dc3545', // Cor para a linha de despesa
+                    tension: 0.1
+                })))
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+
+
+    function processarGraficoGeral(transacoes, bancos) {
+        
+        var dadosPorBanco = {};
+        var dadosPorCategoria = { Receita: {}, Despesa: {} }; // Agrupar por tipo (Receita/Despesa)
+
+        // Organiza as transações por banco e categoria
+        transacoes.forEach(transacao => {
+            var bancoId = transacao.contaId;
+            var categoria = transacao.categoriaTransacao || "Sem Categoria"; // Caso não tenha categoria
+            var tipo = transacao.tipoTransacao; // 1 = "Receita", 2 = "Despesa"
+            var valor = transacao.valor;
+
+            // Processar por banco
+            var bancoInfo = bancos[bancoId] || { nome: "Desconhecido" };
+            var bancoNome = bancoInfo.nome;
+
+            if (!dadosPorBanco[bancoNome]) {
+                dadosPorBanco[bancoNome] = { receita: 0, despesa: 0 };
+            }
+
+            if (tipo === 1) {
+                dadosPorBanco[bancoNome].receita += valor;
+            } else if (tipo === 2) {
+                dadosPorBanco[bancoNome].despesa += valor;
+            }
+
+            // Processar por categoria e tipo
+            if (!dadosPorCategoria.Receita[categoria]) {
+                dadosPorCategoria.Receita[categoria] = 0;
+            }
+            if (!dadosPorCategoria.Despesa[categoria]) {
+                dadosPorCategoria.Despesa[categoria] = 0;
+            }
+
+            // Adiciona o valor ao tipo (Receita ou Despesa)
+            if (tipo === 1) {
+                dadosPorCategoria.Receita[categoria] += valor;
+            } else if (tipo === 2) {
+                dadosPorCategoria.Despesa[categoria] += valor;
+            }
+        });
+
+        // Extrair os dados para o gráfico
+        var nomesBancos = Object.keys(dadosPorBanco);
+        var receitasBancos = nomesBancos.map(banco => dadosPorBanco[banco].receita);
+        var despesasBancos = nomesBancos.map(banco => dadosPorBanco[banco].despesa);
+
+        var categorias = Object.keys(dadosPorCategoria.Receita);
+        var receitasCategorias = categorias.map(categoria => dadosPorCategoria.Receita[categoria]);
+        var despesasCategorias = categorias.map(categoria => dadosPorCategoria.Despesa[categoria]);
+
+        // Chama a função para renderizar o gráfico com todos os dados
+        renderizarGraficoCombinado(nomesBancos, receitasBancos, despesasBancos, categorias, receitasCategorias, despesasCategorias);
+    }
+
+    function renderizarGraficoCombinado(nomesBancos, receitasBancos, despesasBancos, categorias, receitasCategorias, despesasCategorias) {
+        var ctx = document.getElementById('graficoCombinado').getContext('2d');
+
+        var chart = new Chart(ctx, {
+            type: 'bar', // Tipo de gráfico (barra, por exemplo)
+            data: {
+                labels: nomesBancos, // Exibe os nomes dos bancos como rótulos
+                datasets: [
+                    {
+                        label: 'Receitas por Banco',
+                        data: receitasBancos,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Despesas por Banco',
+                        data: despesasBancos,
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Receitas por Categoria',
+                        data: receitasCategorias,
+                        backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Despesas por Categoria',
+                        data: despesasCategorias,
+                        backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            // Personalize a exibição do tooltip
+                            label: function (tooltipItem) {
+                                var label = tooltipItem.dataset.label || '';
+                                var value = tooltipItem.raw || 0;
+                                return label + ': ' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function processarGraficoTotal(transacoes, bancos) {
+        var totalReceitas = 0;
+        var totalDespesas = 0;
+        var dadosPorCategoria = { Receita: {}, Despesa: {} }; // Agrupar por tipo (Receita/Despesa)
+
+        // Organiza as transações por banco e categoria
+        transacoes.forEach(transacao => {
+            var categoria = transacao.categoriaTransacao || "Sem Categoria"; // Caso não tenha categoria
+            var tipo = transacao.tipoTransacao; // 1 = "Receita", 2 = "Despesa"
+            var valor = transacao.valor;
+
+            // Processar por categoria e tipo
+            if (tipo === 1) {
+                totalReceitas += valor;
+                if (!dadosPorCategoria.Receita[categoria]) {
+                    dadosPorCategoria.Receita[categoria] = 0;
+                }
+                dadosPorCategoria.Receita[categoria] += valor;
+            } else if (tipo === 2) {
+                totalDespesas += valor;
+                if (!dadosPorCategoria.Despesa[categoria]) {
+                    dadosPorCategoria.Despesa[categoria] = 0;
+                }
+                dadosPorCategoria.Despesa[categoria] += valor;
+            }
+        });
+
+        // Chama a função para renderizar os gráficos de pizza
+        renderizarGraficoPizza("graficoReceitas", "Receitas", totalReceitas, dadosPorCategoria.Receita);
+        renderizarGraficoPizza("graficoDespesas", "Despesas", totalDespesas, dadosPorCategoria.Despesa);
+
+        // Chama a função para renderizar o gráfico de saldo total e saldo atual
+        renderizarGraficoSaldo(totalReceitas, totalDespesas);
+    }
+
+    function renderizarGraficoPizza(idElemento, titulo, total, dados) {
+        var ctx = document.getElementById(idElemento).getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'pie', // Tipo de gráfico (pizza)
+            data: {
+                labels: Object.keys(dados),
+                datasets: [{
+                    label: titulo,
+                    data: Object.values(dados),
+                    backgroundColor: ['#4caf50', '#ff5722', '#03a9f4', '#f44336', '#9c27b0'], // Cores para diferentes categorias
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                var label = tooltipItem.label || '';
+                                var value = tooltipItem.raw || 0;
+                                return label + ': ' + value.toFixed(2); // Exibe com duas casas decimais
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderizarGraficoSaldo(totalReceitas, totalDespesas) {
+        // O saldo total agora é a soma das receitas e despesas
+        var saldoTotal = totalReceitas + totalDespesas;
+        var saldoAtual = totalReceitas - totalDespesas; // Saldo Atual é a diferença entre receitas e despesas
+
+        var ctx = document.getElementById('graficoSaldo').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Saldo Total', 'Saldo Atual'],
+                datasets: [{
+                    label: 'Saldo',
+                    data: [saldoTotal, saldoAtual],
+                    backgroundColor: ['#8bc34a', '#e91e63'],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                var label = tooltipItem.label || '';
+                                var value = tooltipItem.raw || 0;
+                                return label + ': ' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+</script>
+
+<style>
+    .card:hover {
+        background-color: #e9ecef;
+    }
+</style>

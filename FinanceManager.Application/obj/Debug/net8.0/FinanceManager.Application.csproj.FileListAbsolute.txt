@@ -1,0 +1,17 @@
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\bin\Debug\net8.0\FinanceManager.Application.deps.json
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\bin\Debug\net8.0\FinanceManager.Application.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\bin\Debug\net8.0\FinanceManager.Application.pdb
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\bin\Debug\net8.0\FinanceManager.Domain.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\bin\Debug\net8.0\FinanceManager.Infrastructure.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\bin\Debug\net8.0\FinanceManager.Domain.pdb
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\bin\Debug\net8.0\FinanceManager.Infrastructure.pdb
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\obj\Debug\net8.0\FinanceManager.Application.csproj.AssemblyReference.cache
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\obj\Debug\net8.0\FinanceManager.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\obj\Debug\net8.0\FinanceManager.Application.AssemblyInfoInputs.cache
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\obj\Debug\net8.0\FinanceManager.Application.AssemblyInfo.cs
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\obj\Debug\net8.0\FinanceManager.Application.csproj.CoreCompileInputs.cache
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\obj\Debug\net8.0\FinanceM.DF181F8E.Up2Date
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\obj\Debug\net8.0\FinanceManager.Application.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\obj\Debug\net8.0\refint\FinanceManager.Application.dll
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\obj\Debug\net8.0\FinanceManager.Application.pdb
+C:\Users\leand.DESKTOP-PR6T4QP\source\repos\FinanceManager\FinanceManager.Application\obj\Debug\net8.0\ref\FinanceManager.Application.dll

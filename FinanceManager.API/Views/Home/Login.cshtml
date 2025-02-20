@@ -1,0 +1,156 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow p-4" style="width: 400px;">
+        <h2 class="text-center mb-4">Acesse sua Conta</h2>
+
+        @if (ViewData["Error"] != null)
+        {
+            <div class="alert alert-danger">@ViewData["Error"]</div>
+        }
+
+        <form method="post" asp-action="Login">
+            <div class="mb-3">
+                <label for="email" class="form-label">E-mail</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Senha</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Entrar</button>
+        </form>
+
+        <div class="text-center mt-3">
+            <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#registerModal">Cadastrar-se</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Alertas dinâmicos -->
+<div id="successAlert" class="alert alert-success d-none position-fixed top-0 start-50 translate-middle-x mt-3" role="alert" style="z-index: 9999"></div>
+<div id="errorAlert" class="alert alert-danger d-none position-fixed top-0 start-50 translate-middle-x mt-3" role="alert" style="z-index: 9999"></div>
+
+
+
+@* <!-- Alerta de sucesso -->
+<div id="successAlert" class="alert alert-success d-none position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 1050;">
+    Usuário cadastrado com sucesso!
+</div>
+
+<!-- Alerta de erro -->
+<div id="errorAlert" class="alert alert-danger d-none position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 1050;">
+</div> *@
+
+
+
+<!-- Modal de Cadastro -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="registerModalLabel">Criar Conta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="registerError" class="alert alert-danger d-none"></div> <!-- Mensagem de erro -->
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="name" name="name" required autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerEmail" class="form-label">E-mail</label>
+                        <input type="email" class="form-control" id="registerEmail" name="email" required autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerPassword" class="form-label">Senha</label>
+                        <input type="password" class="form-control" id="registerPassword" name="password" required autocomplete="new-password">
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" id="registerBtn">Cadastrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("registerBtn").addEventListener("click", async function () {
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("registerEmail").value.trim();
+        const password = document.getElementById("registerPassword").value.trim();
+        const errorDiv = document.getElementById("registerError");
+
+
+
+        if (!name || !email || !password) {
+            showAlert("error", "Todos os campos são obrigatórios!");
+            return;
+        }
+
+        const usuario = {
+            nome: name,
+            email: email,
+            passwordHash: password
+        };
+
+        try {
+            const response = await fetch("/api/usuario", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(usuario)
+            });
+
+            if (!response.ok) {
+                throw new Error(await response.text());
+            }
+
+            showAlert("success", "Usuário cadastrado com sucesso!");
+
+            // Fecha o modal após o sucesso
+            var registerModal = bootstrap.Modal.getInstance(document.getElementById("registerModal"));
+            registerModal.hide();
+
+            // Limpa os campos do formulário
+            document.getElementById("registerForm").reset();
+
+        } catch (error) {
+            showAlert("error", error.message);
+        }
+    });
+
+    // Função para exibir alertas que somem após 5 segundos
+    function showAlert(type, message) {
+        let alertBox;
+
+        // Se for sucesso, usa a div de sucesso
+        if (type === "success") {
+            alertBox = document.getElementById("successAlert");
+        }
+        // Se for erro, usa a div de erro
+        else if (type === "error") {
+            alertBox = document.getElementById("errorAlert");
+        }
+
+        // Verifica se a div de alerta foi encontrada
+        if (!alertBox) {
+            console.error("Elemento de alerta não encontrado!");
+            return;
+        }
+
+        // Define a mensagem do alerta
+        alertBox.innerText = message;
+
+        // Torna o alerta visível
+        alertBox.classList.remove("d-none");
+
+        // Remove o alerta após 5 segundos
+        setTimeout(() => {
+            alertBox.classList.add("d-none");
+        }, 3000); // 5 segundos para desaparecer
+    }
+</script>
+
